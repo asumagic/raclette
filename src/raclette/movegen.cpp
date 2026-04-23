@@ -32,8 +32,7 @@ Move MoveGenerator::next() {
 				switch (PawnMoveState::GeneratorState(_pawn.state++)) {
 					// FIXME: holy hell en passant
 				case PawnMoveState::TWO_AHEAD:
-					if (is_starting_position && get_at(_loc.offset(0, 1))->is_empty()
-					    && get_at(_loc.offset(0, 2))->is_empty()) {
+					if (is_starting_position && get_offset(0, 1)->is_empty() && get_offset(0, 2)->is_empty()) {
 						return a_move_to(_loc.offset(0, 2));
 					}
 					break;

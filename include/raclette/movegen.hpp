@@ -37,6 +37,10 @@ class MoveGenerator {
 		return _position->get(loc.to_global(true));
 	}
 
+	[[nodiscard]] std::optional<Cell> get_offset(int offset_x, int offset_y) const {
+		return get_at(_loc.offset(offset_x, offset_y));
+	}
+
 	[[nodiscard]] std::optional<Move> try_simple_move(SideRelativeLocation to) {
 		if (const auto candidate = get_at(to); candidate && candidate->is_empty()) {
 			return {a_move_to(to)};
