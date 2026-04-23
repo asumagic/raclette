@@ -12,11 +12,11 @@ int main() {
 	raclette::parser::parse_fen_position(b, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
 	raclette::MoveGenerator        generator(b);
-	const raclette::GlobalLocation pos_to_test{7, 1};
+	const raclette::GlobalLocation pos_to_test{6, 1};
 	generator.seek(pos_to_test);
 
 	raclette::Move m;
-	while ((m = generator.next(), m.is_valid())) {
+	while ((m = generator.next(), m.is_valid() && m.from == pos_to_test)) {
 		fmt::println("{} -> {}", m.from, m.to);
 	}
 

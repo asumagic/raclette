@@ -41,14 +41,21 @@ class MoveGenerator {
 		return get_at(_loc.offset(offset_x, offset_y));
 	}
 
-	[[nodiscard]] std::optional<Move> try_simple_move(SideRelativeLocation to) {
+	[[nodiscard]] std::optional<Move> try_empty_move(SideRelativeLocation to) {
 		if (const auto candidate = get_at(to); candidate && candidate->is_empty()) {
 			return {a_move_to(to)};
 		}
 		return std::nullopt;
 	}
 
-	[[nodiscard]] std::optional<Move> try_simple_take(SideRelativeLocation to) {
+	[[nodiscard]] std::optional<Move> try_move_or_take(SideRelativeLocation to) {
+		if (const auto candidate = get_at(to); candidate && candidate->is_empty() || !candidate->is_ours) {
+			return {a_move_to(to)};
+		}
+		return std::nullopt;
+	}
+
+	[[nodiscard]] std::optional<Move> try_take(SideRelativeLocation to) {
 		if (const auto candidate = get_at(to); candidate && candidate->can_take()) {
 			return {a_move_to(to)};
 		}

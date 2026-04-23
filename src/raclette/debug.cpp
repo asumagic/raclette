@@ -13,23 +13,23 @@ void print_piece_pretty(Cell p) {
 	}
 	if (!p.is_ours) {
 		switch (p.cell.p) {
-		case Piece::NONE:   fmt::print(" "); break;
-		case Piece::KING:   fmt::print("♚"); break;
-		case Piece::QUEEN:  fmt::print("♛"); break;
-		case Piece::ROOK:   fmt::print("♜"); break;
-		case Piece::BISHOP: fmt::print("♝"); break;
-		case Piece::KNIGHT: fmt::print("♞"); break;
-		case Piece::PAWN:   fmt::print("♟"); break;
+		case PieceKind::NONE:   fmt::print(" "); break;
+		case PieceKind::KING:   fmt::print("♚"); break;
+		case PieceKind::QUEEN:  fmt::print("♛"); break;
+		case PieceKind::ROOK:   fmt::print("♜"); break;
+		case PieceKind::BISHOP: fmt::print("♝"); break;
+		case PieceKind::KNIGHT: fmt::print("♞"); break;
+		case PieceKind::PAWN:   fmt::print("♟"); break;
 		}
 	} else {
 		switch (p.cell.p) {
-		case Piece::NONE:   fmt::print(" "); break;
-		case Piece::KING:   fmt::print("♔"); break;
-		case Piece::QUEEN:  fmt::print("♕"); break;
-		case Piece::ROOK:   fmt::print("♖"); break;
-		case Piece::BISHOP: fmt::print("♗"); break;
-		case Piece::KNIGHT: fmt::print("♘"); break;
-		case Piece::PAWN:   fmt::print("♙"); break;
+		case PieceKind::NONE:   fmt::print(" "); break;
+		case PieceKind::KING:   fmt::print("♔"); break;
+		case PieceKind::QUEEN:  fmt::print("♕"); break;
+		case PieceKind::ROOK:   fmt::print("♖"); break;
+		case PieceKind::BISHOP: fmt::print("♗"); break;
+		case PieceKind::KNIGHT: fmt::print("♘"); break;
+		case PieceKind::PAWN:   fmt::print("♙"); break;
 		}
 	}
 	fmt::print(" \e[0m");

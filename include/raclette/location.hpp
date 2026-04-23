@@ -18,6 +18,7 @@ struct GlobalLocation {
 	[[nodiscard]] SideRelativeLocation to_relative(bool is_ours) const;
 };
 
+/// Location of a cell on the board relative to the side the player is on
 struct SideRelativeLocation {
 	int x, y;
 

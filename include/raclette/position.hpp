@@ -8,10 +8,10 @@
 
 namespace raclette {
 
-enum class Piece : std::uint8_t { NONE, KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN };
+enum class PieceKind : std::uint8_t { NONE, KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN };
 
 struct CellStorage {
-	Piece p;
+	PieceKind p;
 };
 
 struct Cell {
@@ -19,7 +19,7 @@ struct Cell {
 	GlobalLocation loc;
 	bool           is_ours;
 
-	[[nodiscard]] bool is_empty() const { return cell.p == Piece::NONE; }
+	[[nodiscard]] bool is_empty() const { return cell.p == PieceKind::NONE; }
 	[[nodiscard]] bool can_take() const { return !is_empty() && !is_ours; }
 };
 
@@ -38,14 +38,14 @@ class Position {
 	template<class Self> constexpr Cell get_unsafe(this Self& self, GlobalLocation loc) {
 		Cell p{};
 		p.loc = loc;
-		if (auto& our_cell = self.at_global_pos(loc, true); our_cell.p != Piece::NONE) {
+		if (auto& our_cell = self.at_global_pos(loc, true); our_cell.p != PieceKind::NONE) {
 			p.cell    = our_cell;
 			p.is_ours = true;
-		} else if (auto& their_cell = self.at_global_pos(loc, false); their_cell.p != Piece::NONE) {
+		} else if (auto& their_cell = self.at_global_pos(loc, false); their_cell.p != PieceKind::NONE) {
 			p.cell    = their_cell;
 			p.is_ours = false;
 		} else {
-			p.cell = {Piece::NONE};
+			p.cell = {PieceKind::NONE};
 		}
 		return p;
 	}
@@ -58,7 +58,7 @@ class Position {
 		return {self.get_unsafe(loc)};
 	}
 
-	constexpr void set(GlobalLocation loc, Piece p, bool in_ours) { at_global_pos(loc, in_ours).p = p; }
+	constexpr void set(GlobalLocation loc, PieceKind p, bool in_ours) { at_global_pos(loc, in_ours).p = p; }
 
 	private:
 	// both halves of storage represent a playing side from their own position i.e. (0, 0) starts as the rook of that

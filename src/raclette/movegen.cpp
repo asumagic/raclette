@@ -21,12 +21,13 @@ Move MoveGenerator::next() {
 		}
 
 		switch (cell.cell.p) {
-		case Piece::KING:   break;
-		case Piece::QUEEN:  break;
-		case Piece::ROOK:   break;
-		case Piece::BISHOP: break;
-		case Piece::KNIGHT: break;
-		case Piece::PAWN:   {
+		case PieceKind::KING:   break;
+		case PieceKind::QUEEN:  break;
+		case PieceKind::ROOK:   break;
+		case PieceKind::BISHOP: break;
+		case PieceKind::KNIGHT: break;
+
+		case PieceKind::PAWN:   {
 			const bool is_starting_position = _loc.y == 1;
 			while (_pawn.state != PawnMoveState::DONE) {
 				switch (PawnMoveState::GeneratorState(_pawn.state++)) {
@@ -37,17 +38,17 @@ Move MoveGenerator::next() {
 					}
 					break;
 				case PawnMoveState::ONE_AHEAD:
-					if (const auto target = try_simple_move(_loc.offset(0, 1))) {
+					if (const auto target = try_empty_move(_loc.offset(0, 1))) {
 						return *target;
 					}
 					break;
 				case PawnMoveState::TAKE_LEFT:
-					if (const auto target = try_simple_take(_loc.offset(-1, 1))) {
+					if (const auto target = try_take(_loc.offset(-1, 1))) {
 						return *target;
 					}
 					break;
 				case PawnMoveState::TAKE_RIGHT:
-					if (const auto target = try_simple_take(_loc.offset(1, 1))) {
+					if (const auto target = try_take(_loc.offset(1, 1))) {
 						return *target;
 					}
 					break;
@@ -55,7 +56,7 @@ Move MoveGenerator::next() {
 				}
 			}
 		}
-		case Piece::NONE: break;
+		case PieceKind::NONE: break;
 		}
 
 		if (!skip_to_next_cell()) {
