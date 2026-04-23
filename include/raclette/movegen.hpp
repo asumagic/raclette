@@ -13,10 +13,33 @@ namespace raclette {
 
 class Position;
 
-struct KingMoveState {};
-struct QueenMoveState {};
-struct RookMoveState {};
-struct BishopMoveState {};
+struct KingMoveState {
+	static constexpr std::array<std::pair<int, int>, 8> valid_offsets{
+	    {{-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}}
+	};
+
+	std::uint8_t move_idx = 0;
+};
+
+struct QueenMoveState {
+	static constexpr std::array<std::pair<int, int>, 8> ray_directions{
+	    {{-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}}
+	};
+
+	std::uint8_t ray_idx = 0;
+};
+
+struct RookMoveState {
+	static constexpr std::array<std::pair<int, int>, 4> ray_directions{{{-1, 0}, {0, -1}, {1, 0}, {0, 1}}};
+
+	std::uint8_t ray_idx = 0;
+};
+
+struct BishopMoveState {
+	static constexpr std::array<std::pair<int, int>, 4> ray_directions{{{-1, 1}, {1, 1}, {1, -1}, {-1, -1}}};
+
+	std::uint8_t ray_idx = 0;
+};
 
 struct KnightMoveState {
 	static constexpr std::array<std::pair<int, int>, 8> valid_offsets{
