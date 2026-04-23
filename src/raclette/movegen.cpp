@@ -67,6 +67,7 @@ Move MoveGenerator::next() {
 			}
 			break;
 		}
+
 		case PieceKind::NONE: break;
 		}
 
