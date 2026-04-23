@@ -1,11 +1,15 @@
 #pragma once
 
+#include <raclette/move.hpp>
+
+#include <vector>
+
 namespace raclette {
 
-struct Position;
-class Board;
+struct Cell;
+class Position;
 
-void print_piece_pretty(Position p);
-void print_board_pretty(const Board& board);
+void print_piece_pretty(Cell p);
+void print_board_pretty(const Position& board, const std::vector<Move>& highlighted_moves = {});
 
-}
+} // namespace raclette

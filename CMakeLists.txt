@@ -6,8 +6,10 @@ project(raclette)
 
 add_executable(raclette
     src/main.cpp
-    src/raclette/board.cpp
+    src/raclette/parser/fen.cpp
+    src/raclette/position.cpp
     src/raclette/debug.cpp
+    src/raclette/movegen.cpp
 )
 
 target_include_directories(raclette PRIVATE include/)
