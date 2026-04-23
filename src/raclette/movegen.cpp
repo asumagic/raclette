@@ -25,9 +25,19 @@ Move MoveGenerator::next() {
 		case PieceKind::QUEEN:  break;
 		case PieceKind::ROOK:   break;
 		case PieceKind::BISHOP: break;
-		case PieceKind::KNIGHT: break;
 
-		case PieceKind::PAWN:   {
+		case PieceKind::KNIGHT: {
+			while (_knight.move_idx < _knight.valid_offsets.size()) {
+				const auto [x, y] = KnightMoveState::valid_offsets[_knight.move_idx++];
+				if (const auto target = try_move_or_take(_loc.offset(x, y))) {
+					return *target;
+				}
+			}
+			_knight = {};
+			break;
+		}
+
+		case PieceKind::PAWN: {
 			const bool is_starting_position = _loc.y == 1;
 			while (_pawn.state != PawnMoveState::DONE) {
 				switch (PawnMoveState::GeneratorState(_pawn.state++)) {
@@ -55,6 +65,7 @@ Move MoveGenerator::next() {
 				case PawnMoveState::DONE: _pawn = {};
 				}
 			}
+			break;
 		}
 		case PieceKind::NONE: break;
 		}

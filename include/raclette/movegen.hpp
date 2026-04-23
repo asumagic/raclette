@@ -4,8 +4,10 @@
 #include <raclette/move.hpp>
 #include <raclette/position.hpp>
 
+#include <array>
 #include <cstdint>
 #include <optional>
+#include <utility>
 
 namespace raclette {
 
@@ -15,7 +17,15 @@ struct KingMoveState {};
 struct QueenMoveState {};
 struct RookMoveState {};
 struct BishopMoveState {};
-struct KnightMoveState {};
+
+struct KnightMoveState {
+	static constexpr std::array<std::pair<int, int>, 8> valid_offsets{
+	    {{-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {-2, -1}, {-1, -2}, {1, -2}, {2, -1}}
+	};
+
+	std::uint8_t move_idx = 0;
+};
+
 struct PawnMoveState {
 	enum GeneratorState : std::uint8_t { TWO_AHEAD = 0, ONE_AHEAD, TAKE_LEFT, TAKE_RIGHT, DONE };
 
@@ -49,7 +59,7 @@ class MoveGenerator {
 	}
 
 	[[nodiscard]] std::optional<Move> try_move_or_take(SideRelativeLocation to) {
-		if (const auto candidate = get_at(to); candidate && candidate->is_empty() || !candidate->is_ours) {
+		if (const auto candidate = get_at(to); candidate && (candidate->is_empty() || !candidate->is_ours)) {
 			return {a_move_to(to)};
 		}
 		return std::nullopt;
