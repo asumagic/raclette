@@ -2,6 +2,7 @@
 #include <raclette/debug.hpp>
 #include <raclette/movegen.hpp>
 #include <raclette/parser/fen.hpp>
+#include <raclette/perft.hpp>
 #include <raclette/position.hpp>
 #include <string_view>
 
@@ -11,6 +12,7 @@ int main(int argc, char** argv) {
 		    "usage: raclette [action] [params]\n"
 		    "Available actions:\n"
 		    "	enum [FEN]\n"
+		    "	perft [FEN] [depth]"
 		);
 		return 1;
 	}
@@ -30,6 +32,22 @@ int main(int argc, char** argv) {
 		}
 
 		print_board_pretty(b);
+	} else if (action == "perft") {
+		if (argc < 4) {
+			fmt::println("Syntax: raclette perft [FEN] [depth]");
+			return 1;
+		}
+
+		const auto depth = std::stoi(argv[3]);
+
+		raclette::Position b;
+		raclette::parser::parse_fen_position(b, argv[2]);
+
+		print_board_pretty(b);
+
+		const auto perft_value = raclette::perft(b, depth, true);
+
+		fmt::println("perft({}) = {}", depth, perft_value);
 	} else {
 		fmt::println("Unknown action passed: {}", action);
 		return 1;

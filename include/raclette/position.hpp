@@ -1,10 +1,11 @@
 #pragma once
 
-#include "raclette/location.hpp"
 #include <array>
 #include <cassert>
 #include <cstdint>
 #include <optional>
+#include <raclette/location.hpp>
+#include <raclette/move.hpp>
 
 namespace raclette {
 
@@ -26,6 +27,12 @@ struct Cell {
 class Position {
 	public:
 	using Storage = std::array<CellStorage, 64>;
+
+	Position()                           = default;
+	Position(const Position&)            = default;
+	Position& operator=(const Position&) = default;
+	Position(Position&&)                 = delete;
+	Position& operator=(Position&&)      = delete;
 
 	template<class Self> constexpr auto& at_relative_pos(this Self& self, SideRelativeLocation loc, bool in_ours) {
 		return (in_ours ? self.ours : self.theirs)[(loc.y * 8) + loc.x];
@@ -59,6 +66,17 @@ class Position {
 	}
 
 	constexpr void set(GlobalLocation loc, PieceKind p, bool in_ours) { at_global_pos(loc, in_ours).p = p; }
+
+	void play_move(Move m) {
+		// FIXME: en passant
+		// FIXME: castling
+
+		const auto from_piece = get_unsafe(m.from);
+		// const auto to_piece = get_unsafe(m.to);
+
+		set(m.from, PieceKind::NONE, false);
+		set(m.to, from_piece.cell.p, from_piece.is_ours);
+	}
 
 	private:
 	// both halves of storage represent a playing side from their own position i.e. (0, 0) starts as the rook of that

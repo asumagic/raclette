@@ -62,6 +62,15 @@ void parse_fen_position(Position& position, std::string_view fen) {
 			x = 0;
 			break;
 
+		case '1': x += 1; break;
+		case '2': x += 2; break;
+		case '3': x += 3; break;
+		case '4': x += 4; break;
+		case '5': x += 5; break;
+		case '6': x += 6; break;
+		case '7': x += 7; break;
+		case '8': x += 8; break;
+
 		case ' ': return;
 		}
 

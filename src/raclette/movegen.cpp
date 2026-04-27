@@ -14,6 +14,43 @@ Move MoveGenerator::next() {
 	// FIXME: if the king is in a check, then the next move should undo that situation
 	// FIXME: the next move should not put the king in a check
 
+	const auto try_rays_with_state = [&](auto& state) -> std::optional<Move> {
+		const auto next_ray_direction = [&] {
+			++state.ray_idx;
+			state.ray_dist = 0;
+		};
+
+		while (state.ray_idx < state.ray_directions.size()) {
+			const auto [ray_dir_x, ray_dir_y] = state.ray_directions[state.ray_idx];
+
+			++state.ray_dist;
+
+			const SideRelativeLocation candidate_pos{
+			    _loc.x - (ray_dir_x * state.ray_dist),
+			    _loc.y - (ray_dir_y * state.ray_dist)
+			};
+
+			if (!candidate_pos.is_in_bounds()) {
+				next_ray_direction();
+				continue;
+			}
+
+			if (const auto target = try_take(candidate_pos)) {
+				next_ray_direction(); // can't go beyond that piece
+				return target;
+			}
+
+			if (const auto target = try_empty_move(candidate_pos)) {
+				++state.ray_idx;
+				return target;
+			}
+
+			next_ray_direction();
+		}
+
+		return std::nullopt;
+	};
+
 	while (_current != MoveGeneratorState::FINISHED) {
 		switch (_current) {
 		case MoveGeneratorState::ITER_KING: {
@@ -27,88 +64,22 @@ Move MoveGenerator::next() {
 		}
 
 		case MoveGeneratorState::ITER_QUEEN: {
-			while (_queen.ray_idx < _queen.ray_directions.size()) {
-				const auto [ray_dir_x, ray_dir_y] = _queen.ray_directions[_queen.ray_idx];
-
-				const SideRelativeLocation candidate_pos{
-				    _loc.x - (ray_dir_x * _queen.ray_dist),
-				    _loc.y - (ray_dir_y * _queen.ray_dist)
-				};
-
-				if (!candidate_pos.is_in_bounds()) {
-					++_queen.ray_idx;
-					continue;
-				}
-
-				if (const auto target = try_take(candidate_pos)) {
-					++_queen.ray_idx; // can't go beyond that piece
-					return *target;
-				}
-
-				if (const auto target = try_empty_move(candidate_pos)) {
-					++_queen.ray_dist;
-					return *target;
-				}
-
-				++_queen.ray_idx;
+			if (const auto target = try_rays_with_state(_queen)) {
+				return *target;
 			}
 			break;
 		}
 
 		case MoveGeneratorState::ITER_ROOK: {
-			while (_rook.ray_idx < _rook.ray_directions.size()) {
-				const auto [ray_dir_x, ray_dir_y] = _rook.ray_directions[_rook.ray_idx];
-
-				const SideRelativeLocation candidate_pos{
-				    _loc.x - (ray_dir_x * _rook.ray_dist),
-				    _loc.y - (ray_dir_y * _rook.ray_dist)
-				};
-
-				if (!candidate_pos.is_in_bounds()) {
-					++_rook.ray_idx;
-					continue;
-				}
-
-				if (const auto target = try_take(candidate_pos)) {
-					++_rook.ray_idx; // can't go beyond that piece
-					return *target;
-				}
-
-				if (const auto target = try_empty_move(candidate_pos)) {
-					++_rook.ray_dist;
-					return *target;
-				}
-
-				++_rook.ray_idx;
+			if (const auto target = try_rays_with_state(_rook)) {
+				return *target;
 			}
 			break;
 		}
 
 		case MoveGeneratorState::ITER_BISHOP: {
-			while (_bishop.ray_idx < _bishop.ray_directions.size()) {
-				const auto [ray_dir_x, ray_dir_y] = _bishop.ray_directions[_bishop.ray_idx];
-
-				const SideRelativeLocation candidate_pos{
-				    _loc.x - (ray_dir_x * _bishop.ray_dist),
-				    _loc.y - (ray_dir_y * _bishop.ray_dist)
-				};
-
-				if (!candidate_pos.is_in_bounds()) {
-					++_bishop.ray_idx;
-					continue;
-				}
-
-				if (const auto target = try_take(candidate_pos)) {
-					++_bishop.ray_idx; // can't go beyond that piece
-					return *target;
-				}
-
-				if (const auto target = try_empty_move(candidate_pos)) {
-					++_bishop.ray_dist;
-					return *target;
-				}
-
-				++_bishop.ray_idx;
+			if (const auto target = try_rays_with_state(_bishop)) {
+				return *target;
 			}
 			break;
 		}
