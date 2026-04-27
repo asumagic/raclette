@@ -1,24 +1,37 @@
-#include "raclette/location.hpp"
 #include <fmt/base.h>
 #include <raclette/debug.hpp>
 #include <raclette/movegen.hpp>
 #include <raclette/parser/fen.hpp>
 #include <raclette/position.hpp>
+#include <string_view>
 
-int main() {
-	raclette::Position b;
-	// set_initial_position(b);
-
-	raclette::parser::parse_fen_position(b, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-	raclette::MoveGenerator        generator(b);
-	const raclette::GlobalLocation pos_to_test{1, 0};
-	generator.seek(pos_to_test);
-
-	raclette::Move m;
-	while ((m = generator.next(), m.is_valid() && m.from == pos_to_test)) {
-		fmt::println("{} -> {}", m.from, m.to);
+int main(int argc, char** argv) {
+	if (argc < 3) {
+		fmt::print(
+		    "usage: raclette [action] [params]\n"
+		    "Available actions:\n"
+		    "	enum [FEN]\n"
+		);
+		return 1;
 	}
 
-	print_board_pretty(b);
+	const std::string_view action = argv[1];
+
+	if (action == "enum") {
+		raclette::Position b;
+		raclette::parser::parse_fen_position(b, argv[2]);
+
+		raclette::MoveGenerator generator(b);
+		// const raclette::GlobalLocation pos_to_test{0, 0};
+
+		raclette::Move m;
+		while ((m = generator.next(), m.is_valid())) {
+			fmt::println("{}{}", m.from, m.to);
+		}
+
+		print_board_pretty(b);
+	} else {
+		fmt::println("Unknown action passed: {}", action);
+		return 1;
+	}
 }
