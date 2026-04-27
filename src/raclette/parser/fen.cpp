@@ -2,10 +2,19 @@
 
 namespace raclette::parser {
 
+enum class FenParserState { PARSE_PIECES, PARSE_COLOR, DONE };
+
 void parse_fen_position(Position& position, std::string_view fen) {
 	int        x = 0, y = 7;
 	const bool black_is_us = false, white_is_us = true;
-	for (char c : fen) {
+
+	FenParserState state = FenParserState::PARSE_PIECES;
+	std::size_t    i     = 0;
+
+	// parse chess pieces
+	while (i < fen.size() && state == FenParserState::PARSE_PIECES) {
+		char c = fen[i];
+
 		switch (c) {
 		case 'r':
 			position.set({x, y}, PieceKind::ROOK, black_is_us);
@@ -71,11 +80,18 @@ void parse_fen_position(Position& position, std::string_view fen) {
 		case '7': x += 7; break;
 		case '8': x += 8; break;
 
-		case ' ': return;
+		case ' ': state = FenParserState::PARSE_COLOR; break;
 		}
 
-		// FIXME: parse rest
+		++i;
 	}
+
+	// parse color playing
+	position.set_white_playing(fen[i] == 'w');
+	i += 2;
+	state = FenParserState::DONE;
+
+	// TODO: parse en passant, halfmove clock, fullmove count
 }
 
 } // namespace raclette::parser

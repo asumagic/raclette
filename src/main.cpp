@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 
 		raclette::Move m;
 		while ((m = generator.next(), m.is_valid())) {
-			fmt::println("{}{}", m.from, m.to);
+			fmt::println("{}{}", b.as_global_pos(m.from, true), b.as_global_pos(m.to, true));
 		}
 
 		print_board_pretty(b);

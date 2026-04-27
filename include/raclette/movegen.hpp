@@ -69,22 +69,20 @@ enum class MoveGeneratorState : std::uint8_t {
 	FINISHED
 };
 
+/// Iterates over all legal moves for a given position.
+/// Always plays with locations as if our side was white.
 class MoveGenerator {
 	public:
 	explicit MoveGenerator(const Position& position) : _position(&position) {}
 
 	Move next();
 
-	void seek(GlobalLocation loc) { _loc = loc.to_relative(true); }
-
 	private:
 	void find_first_iterable();
 	void skip_to_next_iterable();
 	bool skip_to_next_cell();
 
-	[[nodiscard]] std::optional<Cell> get_at(SideRelativeLocation loc) const {
-		return _position->get(loc.to_global(true));
-	}
+	[[nodiscard]] std::optional<Cell> get_at(SideRelativeLocation loc) const { return _position->get(loc); }
 
 	[[nodiscard]] std::optional<Cell> get_offset(int offset_x, int offset_y) const {
 		return get_at(_loc.offset(offset_x, offset_y));
@@ -111,22 +109,21 @@ class MoveGenerator {
 		return std::nullopt;
 	}
 
-	[[nodiscard]] Move a_move_to(SideRelativeLocation to) const {
-		return Move{_loc.to_global(true), to.to_global(true)};
-	}
+	[[nodiscard]] Move a_move_to(SideRelativeLocation to) const { return Move{_loc, to}; }
 
 	const Position*      _position;
 	SideRelativeLocation _loc{};
 
 	MoveGeneratorState _current = MoveGeneratorState::READY;
 
-	// TODO: evaluate perf benefit of making these an union
-	KingMoveIterator   _king;
-	QueenMoveIterator  _queen;
-	RookMoveIterator   _rook;
-	BishopMoveIterator _bishop;
-	KnightMoveIterator _knight;
-	PawnMoveIterator   _pawn;
+	union {
+		KingMoveIterator   _king;
+		QueenMoveIterator  _queen;
+		RookMoveIterator   _rook;
+		BishopMoveIterator _bishop;
+		KnightMoveIterator _knight;
+		PawnMoveIterator   _pawn;
+	};
 };
 
 } // namespace raclette

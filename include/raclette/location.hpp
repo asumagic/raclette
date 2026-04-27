@@ -14,11 +14,9 @@ struct GlobalLocation {
 	bool operator==(const GlobalLocation&) const = default;
 
 	[[nodiscard]] bool is_in_bounds() const { return x >= 0 && x <= 7 && y >= 0 && y <= 7; }
-
-	[[nodiscard]] SideRelativeLocation to_relative(bool is_ours) const;
 };
 
-/// Location of a cell on the board relative to the side the player is on
+/// Location of a cell on the board relative to the currently playing side
 struct SideRelativeLocation {
 	int x, y;
 
@@ -27,12 +25,7 @@ struct SideRelativeLocation {
 	[[nodiscard]] SideRelativeLocation offset(int offset_x, int offset_y) const { return {x + offset_x, y + offset_y}; }
 
 	[[nodiscard]] bool is_in_bounds() const { return x >= 0 && x <= 7 && y >= 0 && y <= 7; }
-
-	[[nodiscard]] GlobalLocation to_global(bool is_ours) const;
 };
-
-inline SideRelativeLocation GlobalLocation::to_relative(bool is_ours) const { return {x, is_ours ? y : 7 - y}; }
-inline GlobalLocation       SideRelativeLocation::to_global(bool is_ours) const { return {x, is_ours ? y : 7 - y}; }
 
 } // namespace raclette
 

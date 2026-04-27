@@ -22,7 +22,12 @@ int perft(Position& position, int depth, bool dump_this_level = false) {
 		const auto last_moves = perft(next_position, depth - 1, false);
 
 		if (dump_this_level) {
-			fmt::println("{}{} - {}", m.from, m.to, last_moves);
+			fmt::println(
+			    "{}{} - {}",
+			    next_position.as_global_pos(m.from, true),
+			    next_position.as_global_pos(m.to, true),
+			    last_moves
+			);
 		}
 
 		moves += last_moves;

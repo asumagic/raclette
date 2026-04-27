@@ -41,7 +41,6 @@ Move MoveGenerator::next() {
 			}
 
 			if (const auto target = try_empty_move(candidate_pos)) {
-				++state.ray_idx;
 				return target;
 			}
 
@@ -144,7 +143,7 @@ void MoveGenerator::find_first_iterable() {
 		const Cell cell = *get_at(_loc);
 
 		if (cell.is_ours) {
-			switch (cell.cell.p) {
+			switch (cell.p) {
 			case PieceKind::NONE: break;
 			case PieceKind::KING:
 				_current = MoveGeneratorState::ITER_KING;

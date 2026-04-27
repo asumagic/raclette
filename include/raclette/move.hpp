@@ -4,7 +4,7 @@
 namespace raclette {
 
 struct Move {
-	GlobalLocation from, to;
+	SideRelativeLocation from, to;
 
 	[[nodiscard]] bool is_valid() const { return from.x != -1; }
 
