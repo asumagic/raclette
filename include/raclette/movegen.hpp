@@ -13,7 +13,7 @@ namespace raclette {
 
 class Position;
 
-struct KingMoveState {
+struct KingMoveIterator {
 	static constexpr std::array<std::pair<int, int>, 8> valid_offsets{
 	    {{-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}}
 	};
@@ -21,27 +21,30 @@ struct KingMoveState {
 	std::uint8_t move_idx = 0;
 };
 
-struct QueenMoveState {
+struct QueenMoveIterator {
 	static constexpr std::array<std::pair<int, int>, 8> ray_directions{
 	    {{-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}}
 	};
 
-	std::uint8_t ray_idx = 0;
+	std::uint8_t ray_idx  = 0;
+	std::uint8_t ray_dist = 0;
 };
 
-struct RookMoveState {
+struct RookMoveIterator {
 	static constexpr std::array<std::pair<int, int>, 4> ray_directions{{{-1, 0}, {0, -1}, {1, 0}, {0, 1}}};
 
-	std::uint8_t ray_idx = 0;
+	std::uint8_t ray_idx  = 0;
+	std::uint8_t ray_dist = 0;
 };
 
-struct BishopMoveState {
+struct BishopMoveIterator {
 	static constexpr std::array<std::pair<int, int>, 4> ray_directions{{{-1, 1}, {1, 1}, {1, -1}, {-1, -1}}};
 
-	std::uint8_t ray_idx = 0;
+	std::uint8_t ray_idx  = 0;
+	std::uint8_t ray_dist = 0;
 };
 
-struct KnightMoveState {
+struct KnightMoveIterator {
 	static constexpr std::array<std::pair<int, int>, 8> valid_offsets{
 	    {{-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {-2, -1}, {-1, -2}, {1, -2}, {2, -1}}
 	};
@@ -49,10 +52,21 @@ struct KnightMoveState {
 	std::uint8_t move_idx = 0;
 };
 
-struct PawnMoveState {
+struct PawnMoveIterator {
 	enum GeneratorState : std::uint8_t { TWO_AHEAD = 0, ONE_AHEAD, TAKE_LEFT, TAKE_RIGHT, DONE };
 
 	std::uint8_t state = TWO_AHEAD;
+};
+
+enum class MoveGeneratorState : std::uint8_t {
+	READY,
+	ITER_KING,
+	ITER_QUEEN,
+	ITER_ROOK,
+	ITER_BISHOP,
+	ITER_KNIGHT,
+	ITER_PAWN,
+	FINISHED
 };
 
 class MoveGenerator {
@@ -64,6 +78,8 @@ class MoveGenerator {
 	void seek(GlobalLocation loc) { _loc = loc.to_relative(true); }
 
 	private:
+	void find_first_iterable();
+	void skip_to_next_iterable();
 	bool skip_to_next_cell();
 
 	[[nodiscard]] std::optional<Cell> get_at(SideRelativeLocation loc) const {
@@ -102,12 +118,15 @@ class MoveGenerator {
 	const Position*      _position;
 	SideRelativeLocation _loc{};
 
-	KingMoveState   _king;
-	QueenMoveState  _queen;
-	RookMoveState   _rook;
-	BishopMoveState _bishop;
-	KnightMoveState _knight;
-	PawnMoveState   _pawn;
+	MoveGeneratorState _current = MoveGeneratorState::READY;
+
+	// TODO: evaluate perf benefit of making these an union
+	KingMoveIterator   _king;
+	QueenMoveIterator  _queen;
+	RookMoveIterator   _rook;
+	BishopMoveIterator _bishop;
+	KnightMoveIterator _knight;
+	PawnMoveIterator   _pawn;
 };
 
 } // namespace raclette

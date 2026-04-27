@@ -9,72 +9,214 @@
 namespace raclette {
 
 Move MoveGenerator::next() {
+	find_first_iterable();
 
-	for (;;) {
-		const Cell cell = *get_at(_loc);
+	// FIXME: if the king is in a check, then the next move should undo that situation
+	// FIXME: the next move should not put the king in a check
 
-		if (!cell.is_ours) {
-			if (!skip_to_next_cell()) {
-				return invalid_move_magic;
-			}
-			continue;
-		}
-
-		switch (cell.cell.p) {
-		case PieceKind::KING:   break;
-		case PieceKind::QUEEN:  break;
-		case PieceKind::ROOK:   break;
-		case PieceKind::BISHOP: break;
-
-		case PieceKind::KNIGHT: {
-			while (_knight.move_idx < _knight.valid_offsets.size()) {
-				const auto [x, y] = KnightMoveState::valid_offsets[_knight.move_idx++];
+	while (_current != MoveGeneratorState::FINISHED) {
+		switch (_current) {
+		case MoveGeneratorState::ITER_KING: {
+			while (_king.move_idx < _king.valid_offsets.size()) {
+				const auto [x, y] = _king.valid_offsets[_king.move_idx++];
 				if (const auto target = try_move_or_take(_loc.offset(x, y))) {
 					return *target;
 				}
 			}
-			_knight = {};
 			break;
 		}
 
-		case PieceKind::PAWN: {
-			const bool is_starting_position = _loc.y == 1;
-			while (_pawn.state != PawnMoveState::DONE) {
-				switch (PawnMoveState::GeneratorState(_pawn.state++)) {
-					// FIXME: holy hell en passant
-				case PawnMoveState::TWO_AHEAD:
-					if (is_starting_position && get_offset(0, 1)->is_empty() && get_offset(0, 2)->is_empty()) {
-						return a_move_to(_loc.offset(0, 2));
-					}
-					break;
-				case PawnMoveState::ONE_AHEAD:
-					if (const auto target = try_empty_move(_loc.offset(0, 1))) {
-						return *target;
-					}
-					break;
-				case PawnMoveState::TAKE_LEFT:
-					if (const auto target = try_take(_loc.offset(-1, 1))) {
-						return *target;
-					}
-					break;
-				case PawnMoveState::TAKE_RIGHT:
-					if (const auto target = try_take(_loc.offset(1, 1))) {
-						return *target;
-					}
-					break;
-				case PawnMoveState::DONE: _pawn = {};
+		case MoveGeneratorState::ITER_QUEEN: {
+			while (_queen.ray_idx < _queen.ray_directions.size()) {
+				const auto [ray_dir_x, ray_dir_y] = _queen.ray_directions[_queen.ray_idx];
+
+				const SideRelativeLocation candidate_pos{
+				    _loc.x - (ray_dir_x * _queen.ray_dist),
+				    _loc.y - (ray_dir_y * _queen.ray_dist)
+				};
+
+				if (!candidate_pos.is_in_bounds()) {
+					++_queen.ray_idx;
+					continue;
+				}
+
+				if (const auto target = try_take(candidate_pos)) {
+					++_queen.ray_idx; // can't go beyond that piece
+					return *target;
+				}
+
+				if (const auto target = try_empty_move(candidate_pos)) {
+					++_queen.ray_dist;
+					return *target;
+				}
+
+				++_queen.ray_idx;
+			}
+			break;
+		}
+
+		case MoveGeneratorState::ITER_ROOK: {
+			while (_rook.ray_idx < _rook.ray_directions.size()) {
+				const auto [ray_dir_x, ray_dir_y] = _rook.ray_directions[_rook.ray_idx];
+
+				const SideRelativeLocation candidate_pos{
+				    _loc.x - (ray_dir_x * _rook.ray_dist),
+				    _loc.y - (ray_dir_y * _rook.ray_dist)
+				};
+
+				if (!candidate_pos.is_in_bounds()) {
+					++_rook.ray_idx;
+					continue;
+				}
+
+				if (const auto target = try_take(candidate_pos)) {
+					++_rook.ray_idx; // can't go beyond that piece
+					return *target;
+				}
+
+				if (const auto target = try_empty_move(candidate_pos)) {
+					++_rook.ray_dist;
+					return *target;
+				}
+
+				++_rook.ray_idx;
+			}
+			break;
+		}
+
+		case MoveGeneratorState::ITER_BISHOP: {
+			while (_bishop.ray_idx < _bishop.ray_directions.size()) {
+				const auto [ray_dir_x, ray_dir_y] = _bishop.ray_directions[_bishop.ray_idx];
+
+				const SideRelativeLocation candidate_pos{
+				    _loc.x - (ray_dir_x * _bishop.ray_dist),
+				    _loc.y - (ray_dir_y * _bishop.ray_dist)
+				};
+
+				if (!candidate_pos.is_in_bounds()) {
+					++_bishop.ray_idx;
+					continue;
+				}
+
+				if (const auto target = try_take(candidate_pos)) {
+					++_bishop.ray_idx; // can't go beyond that piece
+					return *target;
+				}
+
+				if (const auto target = try_empty_move(candidate_pos)) {
+					++_bishop.ray_dist;
+					return *target;
+				}
+
+				++_bishop.ray_idx;
+			}
+			break;
+		}
+
+		case MoveGeneratorState::ITER_KNIGHT: {
+			while (_knight.move_idx < _knight.valid_offsets.size()) {
+				const auto [x, y] = _knight.valid_offsets[_knight.move_idx++];
+				if (const auto target = try_move_or_take(_loc.offset(x, y))) {
+					return *target;
 				}
 			}
 			break;
 		}
 
-		case PieceKind::NONE: break;
+		case MoveGeneratorState::ITER_PAWN: {
+			const bool is_starting_position = _loc.y == 1;
+			while (_pawn.state != PawnMoveIterator::DONE) {
+				switch (PawnMoveIterator::GeneratorState(_pawn.state++)) {
+					// FIXME: holy hell en passant
+				case PawnMoveIterator::TWO_AHEAD:
+					if (is_starting_position && get_offset(0, 1)->is_empty() && get_offset(0, 2)->is_empty()) {
+						return a_move_to(_loc.offset(0, 2));
+					}
+					break;
+				case PawnMoveIterator::ONE_AHEAD:
+					if (const auto target = try_empty_move(_loc.offset(0, 1))) {
+						return *target;
+					}
+					break;
+				case PawnMoveIterator::TAKE_LEFT:
+					if (const auto target = try_take(_loc.offset(-1, 1))) {
+						return *target;
+					}
+					break;
+				case PawnMoveIterator::TAKE_RIGHT:
+					if (const auto target = try_take(_loc.offset(1, 1))) {
+						return *target;
+					}
+					break;
+				case PawnMoveIterator::DONE: break;
+				}
+			}
+			break;
+		}
+
+		default: assert(false && "unexpected state");
+		}
+
+		// at this point, exhausted possible moves for _current state
+		skip_to_next_iterable();
+	}
+
+	return invalid_move_magic;
+}
+
+void MoveGenerator::find_first_iterable() {
+	if (_current != MoveGeneratorState::READY) {
+		return;
+	}
+
+	for (;;) {
+		const Cell cell = *get_at(_loc);
+
+		if (cell.is_ours) {
+			switch (cell.cell.p) {
+			case PieceKind::NONE: break;
+			case PieceKind::KING:
+				_current = MoveGeneratorState::ITER_KING;
+				_king    = {};
+				return;
+			case PieceKind::QUEEN:
+				_current = MoveGeneratorState::ITER_QUEEN;
+				_queen   = {};
+				return;
+			case PieceKind::ROOK:
+				_current = MoveGeneratorState::ITER_ROOK;
+				_rook    = {};
+				return;
+			case PieceKind::BISHOP:
+				_current = MoveGeneratorState::ITER_BISHOP;
+				_bishop  = {};
+				return;
+			case PieceKind::KNIGHT:
+				_current = MoveGeneratorState::ITER_KNIGHT;
+				_knight  = {};
+				return;
+			case PieceKind::PAWN:
+				_current = MoveGeneratorState::ITER_PAWN;
+				_pawn    = {};
+				return;
+			}
 		}
 
 		if (!skip_to_next_cell()) {
-			return invalid_move_magic;
+			_current = MoveGeneratorState::FINISHED;
+			return;
 		}
 	}
+}
+
+void MoveGenerator::skip_to_next_iterable() {
+	if (!skip_to_next_cell()) {
+		_current = MoveGeneratorState::FINISHED;
+		return;
+	}
+
+	_current = MoveGeneratorState::READY;
+	find_first_iterable();
 }
 
 bool MoveGenerator::skip_to_next_cell() {
